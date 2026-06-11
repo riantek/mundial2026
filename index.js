@@ -40,6 +40,20 @@ app.get('/api/live', async (req, res) => {
   }
 })
 
+app.get('/api/resultados', async (req, res) => {
+  try {
+    const { data } = await axios.get(
+      'https://v3.football.api-sports.io/fixtures?league=1&season=2026&status=FT',
+      { headers: { 'x-apisports-key': API_LIVE_KEY } }
+    )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json(data.response ?? [])
+  } catch (err) {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json([])
+  }
+})
+
 app.get('/mundial2026.ics', async (req, res) => {
   try {
     const { data } = await axios.get(
@@ -47,7 +61,7 @@ app.get('/mundial2026.ics', async (req, res) => {
       { headers: { 'X-Auth-Token': API_KEY } }
     )
 
-    console.log('Partidos encontrados:', data.matches?.length ?? 0)
+    console.log('Partidos encontrados:', data.matches ? data.matches.length : 0)
     const partidos = data.matches ?? []
 
     if (partidos.length === 0) {
@@ -60,36 +74,36 @@ app.get('/mundial2026.ics', async (req, res) => {
       'PRODID:-//Mundial FIFA 2026//ES',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      'X-WR-CALNAME:⚽ Mundial FIFA 2026',
+      'X-WR-CALNAME:Mundial FIFA 2026',
       'X-WR-TIMEZONE:America/Lima',
       'REFRESH-INTERVAL;VALUE=DURATION:PT6H',
-      'X-PUBLISHED-TTL:PT6H',
+      'X-PUBLISHED-TTL:PT6H'
     ]
 
-    partidos.forEach((p) => {
-      const inicio   = formatICSDate(p.utcDate)
-      const fin      = formatICSDate(new Date(new Date(p.utcDate).getTime() + 2 * 60 * 60 * 1000).toISOString())
-      const local    = p.homeTeam.name ?? 'Por definir'
-      const visita   = p.awayTeam.name ?? 'Por definir'
+    partidos.forEach(function(p) {
+      const inicio = formatICSDate(p.utcDate)
+      const fin = formatICSDate(new Date(new Date(p.utcDate).getTime() + 2 * 60 * 60 * 1000).toISOString())
+      const local = p.homeTeam.name || 'Por definir'
+      const visita = p.awayTeam.name || 'Por definir'
       const resultado = p.score.fullTime.home != null
-        ? `${p.score.fullTime.home} - ${p.score.fullTime.away}`
+        ? p.score.fullTime.home + ' - ' + p.score.fullTime.away
         : 'Por jugar'
 
       ics = ics.concat([
         'BEGIN:VEVENT',
-        `UID:mundial2026-${p.id}@fifa`,
-        `DTSTAMP:${formatICSDate(new Date().toISOString())}`,
-        `DTSTART:${inicio}`,
-        `DTEND:${fin}`,
-        `SUMMARY:⚽ ${local} vs ${visita}`,
-        `DESCRIPTION:${p.stage} | ${p.status} | Resultado: ${resultado}`,
-        `LOCATION:${p.venue ?? 'Por confirmar'}`,
+        'UID:mundial2026-' + p.id + '@fifa',
+        'DTSTAMP:' + formatICSDate(new Date().toISOString()),
+        'DTSTART:' + inicio,
+        'DTEND:' + fin,
+        'SUMMARY:' + local + ' vs ' + visita,
+        'DESCRIPTION:' + p.stage + ' | ' + p.status + ' | Resultado: ' + resultado,
+        'LOCATION:' + (p.venue || 'Por confirmar'),
         'BEGIN:VALARM',
         'TRIGGER:-PT60M',
         'ACTION:DISPLAY',
-        'DESCRIPTION:¡Partido en 1 hora!',
+        'DESCRIPTION:Partido en 1 hora!',
         'END:VALARM',
-        'END:VEVENT',
+        'END:VEVENT'
       ])
     })
 
@@ -100,26 +114,15 @@ app.get('/mundial2026.ics', async (req, res) => {
     res.send(ics.join('\r\n'))
 
   } catch (err) {
-    console.error('ERROR:', err.response?.data ?? err.message)
-    res.status(500).send('Error: ' + JSON.stringify(err.response?.data ?? err.message))
+    console.error('ERROR:', err.response ? err.response.data : err.message)
+    res.status(500).send('Error: ' + JSON.stringify(err.response ? err.response.data : err.message))
   }
 })
 
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head><title>Mundial FIFA 2026</title><meta charset="utf-8"/></head>
-      <body style="font-family:sans-serif;text-align:center;padding:40px;background:#f0f4f8">
-        <h1>⚽ Calendario Mundial FIFA 2026</h1>
-        <p>Hora Perú (UTC-5) · Se actualiza automáticamente cada 6 horas</p>
-        <a href="/mundial2026.ics" style="display:inline-block;padding:14px 28px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:18px;margin:20px">
-          📅 Descargar / Suscribir calendario
-        </a>
-      </body>
-    </html>
-  `)
+app.get('/', function(req, res) {
+  res.send('<html><head><title>Mundial FIFA 2026</title><meta charset="utf-8"/></head><body style="font-family:sans-serif;text-align:center;padding:40px;background:#f0f4f8"><h1>Mundial FIFA 2026</h1><p>Hora Peru (UTC-5) - Se actualiza automaticamente cada 6 horas</p><a href="/mundial2026.ics" style="display:inline-block;padding:14px 28px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:18px;margin:20px">Descargar / Suscribir calendario</a></body></html>')
 })
 
-app.listen(PORT, () => {
-  console.log(`✅ Servidor corriendo en http://localhost:${PORT}`)
+app.listen(PORT, function() {
+  console.log('Servidor corriendo en http://localhost:' + PORT)
 })
