@@ -2,8 +2,8 @@ const express = require('express')
 const axios = require('axios')
 
 const app = express()
-const PORT = 3000
-const API_KEY = '9c9b4776f4884bc19352fb8ead392642'
+const PORT = process.env.PORT || 3000
+const API_KEY = process.env.API_KEY || '9c9b4776f4884bc19352fb8ead392642'
 
 const formatICSDate = (dateStr) => {
   const date = new Date(dateStr)
@@ -11,19 +11,28 @@ const formatICSDate = (dateStr) => {
   return peru.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 }
 
+app.get('/api/partidos', async (req, res) => {
+  try {
+    const { data } = await axios.get(
+      'https://api.football-data.org/v4/competitions/WC/matches?season=2026',
+      { headers: { 'X-Auth-Token': API_KEY } }
+    )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json(data.matches ?? [])
+  } catch (err) {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json([])
+  }
+})
+
 app.get('/mundial2026.ics', async (req, res) => {
   try {
     const { data } = await axios.get(
       'https://api.football-data.org/v4/competitions/WC/matches?season=2026',
-      {
-        headers: {
-          'X-Auth-Token': API_KEY
-        }
-      }
+      { headers: { 'X-Auth-Token': API_KEY } }
     )
 
     console.log('Partidos encontrados:', data.matches?.length ?? 0)
-
     const partidos = data.matches ?? []
 
     if (partidos.length === 0) {
