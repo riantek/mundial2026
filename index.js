@@ -4,6 +4,7 @@ const axios = require('axios')
 const app = express()
 const PORT = process.env.PORT || 3000
 const API_KEY = process.env.API_KEY || '9c9b4776f4884bc19352fb8ead392642'
+const API_LIVE_KEY = process.env.API_LIVE_KEY || '573be67e99eb1de4e2dd0583eda38b71'
 
 const formatICSDate = (dateStr) => {
   const date = new Date(dateStr)
@@ -19,6 +20,20 @@ app.get('/api/partidos', async (req, res) => {
     )
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.json(data.matches ?? [])
+  } catch (err) {
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json([])
+  }
+})
+
+app.get('/api/live', async (req, res) => {
+  try {
+    const { data } = await axios.get(
+      'https://v3.football.api-sports.io/fixtures?league=1&season=2026&live=all',
+      { headers: { 'x-apisports-key': API_LIVE_KEY } }
+    )
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.json(data.response ?? [])
   } catch (err) {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.json([])
@@ -100,12 +115,6 @@ app.get('/', (req, res) => {
         <a href="/mundial2026.ics" style="display:inline-block;padding:14px 28px;background:#1a73e8;color:white;border-radius:8px;text-decoration:none;font-size:18px;margin:20px">
           📅 Descargar / Suscribir calendario
         </a>
-        <div style="margin-top:30px;color:#444;font-size:14px;max-width:500px;margin:30px auto">
-          <b>¿Cómo suscribirte?</b><br/><br/>
-          📱 <b>iOS:</b> Ajustes → Calendario → Cuentas → Otro → Calendario suscrito<br/><br/>
-          📅 <b>Google Calendar:</b> Otros calendarios → + → Desde URL<br/><br/>
-          💻 <b>Outlook:</b> Agregar calendario → Desde Internet
-        </div>
       </body>
     </html>
   `)
