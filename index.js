@@ -24,7 +24,7 @@ app.get('/api/partidos', async (req, res) => {
       utcDate: f.fixture.date,
       status: f.fixture.status.short === 'FT' ? 'FINISHED' : f.fixture.status.short === '1H' || f.fixture.status.short === '2H' || f.fixture.status.short === 'HT' ? 'IN_PLAY' : f.fixture.status.short === 'HT' ? 'PAUSED' : 'TIMED',
       stage: f.league.round,
-      group: f.league.round,
+      group: {5529:'B',1113:'B',16:'A',1531:'A',17:'A',770:'A',2384:'C',2380:'C',1569:'B',15:'B',6:'D',31:'D',2386:'D',1108:'D',20:'C',777:'C',25:'E',5530:'E',1118:'F',12:'F',1501:'E',2382:'E',28:'F',9:'G',1533:'G',1:'H',32:'H',23:'G',7:'G',22:'H',4673:'H',2:'I',13:'I',1567:'J',1090:'J',26:'K',1532:'K',775:'K',1548:'K',27:'L',1508:'L',10:'J',3:'J',1504:'I',11:'I',8:'L',1568:'L'}[f.teams.home.id] ? 'Grupo '+{5529:'B',1113:'B',16:'A',1531:'A',17:'A',770:'A',2384:'C',2380:'C',1569:'B',15:'B',6:'D',31:'D',2386:'D',1108:'D',20:'C',777:'C',25:'E',5530:'E',1118:'F',12:'F',1501:'E',2382:'E',28:'F',9:'G',1533:'G',1:'H',32:'H',23:'G',7:'G',22:'H',4673:'H',2:'I',13:'I',1567:'J',1090:'J',26:'K',1532:'K',775:'K',1548:'K',27:'L',1508:'L',10:'J',3:'J',1504:'I',11:'I',8:'L',1568:'L'}[f.teams.home.id] : f.league.round,
       venue: f.fixture.venue.name + ', ' + f.fixture.venue.city,
       homeTeam: { id: f.teams.home.id, name: f.teams.home.name, shortName: f.teams.home.name },
       awayTeam: { id: f.teams.away.id, name: f.teams.away.name, shortName: f.teams.away.name },
