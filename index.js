@@ -15,11 +15,22 @@ const formatICSDate = (dateStr) => {
 app.get('/api/partidos', async (req, res) => {
   try {
     const { data } = await axios.get(
-      'https://api.football-data.org/v4/competitions/WC/matches?season=2026',
-      { headers: { 'X-Auth-Token': API_KEY } }
+      'https://v3.football.api-sports.io/fixtures?league=1&season=2026',
+      { headers: { 'x-apisports-key': API_LIVE_KEY } }
     )
     res.setHeader('Access-Control-Allow-Origin', '*')
-    res.json(data.matches ?? [])
+    const partidos = (data.response ?? []).map(f => ({
+      id: f.fixture.id,
+      utcDate: f.fixture.date,
+      status: f.fixture.status.short === 'FT' ? 'FINISHED' : f.fixture.status.short === '1H' || f.fixture.status.short === '2H' || f.fixture.status.short === 'HT' ? 'IN_PLAY' : f.fixture.status.short === 'HT' ? 'PAUSED' : 'TIMED',
+      stage: f.league.round,
+      group: f.league.round,
+      venue: f.fixture.venue.name + ', ' + f.fixture.venue.city,
+      homeTeam: { id: f.teams.home.id, name: f.teams.home.name, shortName: f.teams.home.name },
+      awayTeam: { id: f.teams.away.id, name: f.teams.away.name, shortName: f.teams.away.name },
+      score: { fullTime: { home: f.goals.home, away: f.goals.away } }
+    }))
+    res.json(partidos)
   } catch (err) {
     res.setHeader('Access-Control-Allow-Origin', '*')
     res.json([])
